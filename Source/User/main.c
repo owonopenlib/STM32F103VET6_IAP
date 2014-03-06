@@ -1,16 +1,13 @@
-#include "stm32f10x.h"
-
-void UsartInit(void);
-void UsartPrintChar(char c);
-void UsartPrintString(char *s);
-void Delay_mS(uint32_t n);
+#include "main.h"
+#include "Menu.h"
 
 int main(void)
 {
 	UsartInit();
 	while (1) {
-		UsartPrintString("Hello eclipse.\n");
-		Delay_mS(500);
+//		SerialPutString("Hello eclipse.\n");
+//		Delay_mS(500);
+		MenuMain();
 	}
 }
 
@@ -36,13 +33,13 @@ void UsartInit(void)
 	usart.USART_StopBits = USART_StopBits_1;
 	usart.USART_Parity = USART_Parity_No;
 	usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-	usart.USART_Mode = USART_Mode_Tx;
+	usart.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 	USART_Init(USART1, &usart);
 
 	USART_Cmd(USART1, ENABLE);
 }
 
-void UsartPrintChar(char c)
+void SerialPutChar(char c)
 {
 	USART_SendData(USART1, c);
 	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
@@ -50,10 +47,12 @@ void UsartPrintChar(char c)
 	}
 }
 
-void UsartPrintString(char *s)
+void SerialPutString(char *s)
 {
-	while (*s) {
-		UsartPrintChar(*s++);
+	while (*s != '\0') {
+		if (*s == '\n')
+			SerialPutChar('\r');
+		SerialPutChar(*s++);
 	}
 }
 
