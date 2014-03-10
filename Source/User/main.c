@@ -1,6 +1,8 @@
 #include "main.h"
 #include "Menu.h"
 
+static void UsartInit(void);
+
 int main(void)
 {
 	UsartInit();
@@ -39,31 +41,3 @@ void UsartInit(void)
 	USART_Cmd(USART1, ENABLE);
 }
 
-void SerialPutChar(char c)
-{
-	USART_SendData(USART1, c);
-	while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) {
-		;
-	}
-}
-
-void SerialPutString(char *s)
-{
-	while (*s != '\0') {
-		if (*s == '\n')
-			SerialPutChar('\r');
-		SerialPutChar(*s++);
-	}
-}
-
-void Delay_mS(uint32_t n)
-{
-	uint32_t tmp;
-
-	while (n--) {
-		tmp = 4000;
-		while (tmp--) {
-			;
-		}
-	}
-}
