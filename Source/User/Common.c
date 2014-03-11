@@ -18,6 +18,23 @@ uint32_t SerialKeyPressed(uint8_t *key)
 }
 
 /**
+ * @brief  Receive byte from sender
+ * @param  c: Character
+ * @param  timeout: Timeout
+ * @retval 0: Byte received
+ *        -1: Timeout
+ */
+int32_t SerialReceiveByte(uint8_t *c, uint32_t timeout)
+{
+	while (timeout-- > 0) {
+		if (SerialKeyPressed(c) == 1) {
+			return 0;
+		}
+	}
+	return -1;
+}
+
+/**
  * @brief  Get a key from the HyperTerminal
  * @param  None
  * @retval The Key Pressed

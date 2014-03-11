@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    STM32F4xx_IAP/inc/flash_if.h 
+  * @file    STM32F1xx_IAP/inc/flash_if.h
   * @author  MCD Application Team
   * @version V1.0.0
   * @date    10-October-2011
@@ -43,18 +43,22 @@
 #define ADDR_FLASH_SECTOR_11    ((uint32_t)0x080E0000) /* Base @ of Sector 11, 128 Kbyte */
 
 /* End of the Flash address */
-#define USER_FLASH_END_ADDRESS        0x080FFFFF
+#define USER_FLASH_END_ADDRESS        0x0807FFFF
 /* Define the user application size */
 #define USER_FLASH_SIZE   (USER_FLASH_END_ADDRESS - APPLICATION_ADDRESS + 1)
+
+#define FLASH_PAGE_SIZE				2048
+#define FLASH_APP_TOTAL_PAGE		(USER_FLASH_SIZE / 2048)
 
 /* Define the address from where user application will be loaded.
    Note: the 1st sector 0x08000000-0x08003FFF is reserved for the IAP code */
 #define APPLICATION_ADDRESS   (uint32_t)0x08004000 
+#define IAP_ADDRESS   (uint32_t)0x08000000
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void FLASH_If_Init(void);
-uint32_t FLASH_If_Erase(uint32_t StartSector);
+uint32_t FLASH_If_Erase(uint32_t StartSector, int32_t size);
 uint32_t FLASH_If_Write(__IO uint32_t* FlashAddress, uint32_t* Data, uint32_t DataLength);
 uint16_t FLASH_If_GetWriteProtectionStatus(void);
 uint32_t FLASH_If_DisableWriteProtection(void);

@@ -21,5 +21,6 @@ uint8_t GetKey(void);
 uint32_t SerialKeyPressed(uint8_t *key);
 void Int2Str(uint8_t* str,int32_t intnum);
 uint32_t Str2Int(uint8_t *inputstr,int32_t *intnum);
+int32_t SerialReceiveByte(uint8_t *c, uint32_t timeout);
 
 #endif /* __COMMON_H__ */

@@ -11,6 +11,8 @@ uint8_t Buffer1024[1024] = { 0 };
 
 void SerialDownload(void);
 void ExecuteApp(void);
+void RebootIap(void);
+void CountdownGetKey(uint8_t *c);
 
 void MenuMain(void)
 {
@@ -26,10 +28,12 @@ void MenuMain(void)
 	SerialPutString(
 		"  Execute The New Program ------------------------------ 3\n");
 	SerialPutString(
+		"  Reboot the device ------------------------------------ 4\n");
+	SerialPutString(
 		"==========================================================\n");
 	SerialPutString("\n");
 
-	key = GetKey();
+	CountdownGetKey(&key);
 
 	switch (key) {
 	case '1':
@@ -38,13 +42,19 @@ void MenuMain(void)
 		break;
 	case '2':
 		SerialPutString("serial input 2.\n");
+		SerialPutString("It is not supported.\n");
 		break;
 	case '3':
 		SerialPutString("serial input 3.\n");
 		ExecuteApp();
 		break;
+	case '4':
+		SerialPutString("serial input 4.\n");
+		RebootIap();
+		break;
 	default:
 		SerialPutString("go to default.\n");
+		ExecuteApp();
 		break;
 	}
 }
@@ -104,3 +114,33 @@ void ExecuteApp(void)
 	}
 }
 
+void RebootIap(void)
+{
+	if (((*(__IO uint32_t*) IAP_ADDRESS ) & 0x2FFE0000) == 0x20000000) {
+		SerialPutString("Reboot IAP Program.\n");
+
+		JumpAddress = *(__IO uint32_t*) (IAP_ADDRESS + 4);
+		/* Jump to user application */
+		Jump_To_Application = (pFunction) JumpAddress;
+		/* Initialize user application's Stack Pointer */
+		__set_MSP(*(__IO uint32_t*) IAP_ADDRESS);
+		Jump_To_Application();
+	} else {
+		SerialPutString("Error to reboot.\n");
+	}
+}
+
+void CountdownGetKey(uint8_t *c)
+{
+	uint32_t timer = 4;
+	char *disp_str[4] = { "0..", "1..", "2..", "3.." };
+
+	while (timer--) {
+		SerialPutString(disp_str[timer]);
+		if (!SerialReceiveByte(c, 300000)) {
+			return;
+		}
+	}
+
+	*c = '0';
+}

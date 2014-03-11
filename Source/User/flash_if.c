@@ -49,16 +49,16 @@ void FLASH_If_Init(void)
 //                  FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR|FLASH_FLAG_PGSERR);
 }
 
-
-#define FLASH_PAGE_SIZE			2048
 /**
  * @brief  This function does an erase of all user flash area
  * @param  StartSector: start of user flash area
+ *         seize: total erase size
  * @retval 0: user flash area successfully erased
  *         1: error occurred
  */
-uint32_t FLASH_If_Erase(uint32_t StartSector)
+uint32_t FLASH_If_Erase(uint32_t StartSector, int32_t size)
 {
+	FLASH_Status status;
 //  uint32_t UserStartSector = FLASH_Sector_1, i = 0;
 //
 //  /* Get the sector where start the user flash area */
@@ -76,30 +76,16 @@ uint32_t FLASH_If_Erase(uint32_t StartSector)
 //  }
 	uint32_t i;
 
-	for (i = 0; i < 42; i++) {
+	for (i = 0; i < (size / FLASH_PAGE_SIZE + 1) && i < FLASH_APP_TOTAL_PAGE;
+			i++) {
 		FLASH_ClearFlag(
 			FLASH_FLAG_BSY | FLASH_FLAG_EOP | FLASH_FLAG_PGERR
 				| FLASH_FLAG_WRPRTERR);
-		FLASH_ErasePage(StartSector + (i * FLASH_PAGE_SIZE));
-//		for (j = 0; j < FLASH_PAGE_SIZE / 4; j++) {
-//			tmp.U32 = *(__IO u32*) (ApplicationAddress + (j * 4));
-//			if (0xffffffff != tmp.U32) {
-//				ZeroMemory(ComBuf, COM_BUF_SIZE);
-//				ComBuf[0] = 0x55;
-//				ComBuf[1] = 'N';
-//				USART_string(ComBuf, COM_BUF_SIZE);
-//				ZeroMemory(ComBuf, COM_BUF_SIZE);
-//			}
-//		}
+		status = FLASH_ErasePage(StartSector + (i * FLASH_PAGE_SIZE));
+
+		if (status != FLASH_COMPLETE)
+			return (1);
 	}
-//	if (i >= USER_FLASH_SIZE) {
-//		ZeroMemory(ComBuf, COM_BUF_SIZE);
-//		ComBuf[0] = 0x55;
-//		ComBuf[1] = 'e';
-//		USART_string(ComBuf, COM_BUF_SIZE);
-//		ZeroMemory(ComBuf, COM_BUF_SIZE);
-//	}
-//	flashSta = flashSta;
 	return (0);
 }
 
@@ -116,29 +102,27 @@ uint32_t FLASH_If_Erase(uint32_t StartSector)
 uint32_t FLASH_If_Write(__IO uint32_t* FlashAddress, uint32_t* Data,
 	uint32_t DataLength)
 {
-  uint32_t i = 0;
+	uint32_t i = 0;
 
-  for (i = 0; (i < DataLength) && (*FlashAddress <= (USER_FLASH_END_ADDRESS-4)); i++)
-  {
-    /* Device voltage range supposed to be [2.7V to 3.6V], the operation will
-       be done by word */
-    if (FLASH_ProgramWord(*FlashAddress, *(uint32_t*)(Data+i)) == FLASH_COMPLETE)
-    {
-     /* Check the written value */
-      if (*(uint32_t*)*FlashAddress != *(uint32_t*)(Data+i))
-      {
-        /* Flash content doesn't match SRAM content */
-        return(2);
-      }
-      /* Increment FLASH destination address */
-      *FlashAddress += 4;
-    }
-    else
-    {
-      /* Error occurred while writing data in Flash memory */
-      return (1);
-    }
-  }
+	for (i = 0;
+			(i < DataLength) && (*FlashAddress <= (USER_FLASH_END_ADDRESS - 4));
+			i++) {
+		/* Device voltage range supposed to be [2.7V to 3.6V], the operation will
+		 be done by word */
+		if (FLASH_ProgramWord(*FlashAddress, *(uint32_t*) (Data + i))
+			== FLASH_COMPLETE) {
+			/* Check the written value */
+			if (*(uint32_t*) *FlashAddress != *(uint32_t*) (Data + i)) {
+				/* Flash content doesn't match SRAM content */
+				return (2);
+			}
+			/* Increment FLASH destination address */
+			*FlashAddress += 4;
+		} else {
+			/* Error occurred while writing data in Flash memory */
+			return (1);
+		}
+	}
 
 	return (0);
 }
@@ -198,7 +182,7 @@ uint32_t FLASH_If_DisableWriteProtection(void)
 //  }
 //
 //  /* Write Protection successfully disabled */
-//  return (1);
+	return (1);
 }
 
 /**

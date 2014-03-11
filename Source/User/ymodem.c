@@ -188,7 +188,7 @@ int32_t Ymodem_Receive(uint8_t *buf)
 									return -1;
 								}
 								/* erase user application area */
-								FLASH_If_Erase(APPLICATION_ADDRESS);
+								FLASH_If_Erase(APPLICATION_ADDRESS, size);
 								Send_Byte(ACK);
 								Send_Byte(CRC16);
 							}
